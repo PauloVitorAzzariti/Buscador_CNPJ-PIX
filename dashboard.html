@@ -15,7 +15,7 @@
 
   <div class="container">
     <form id="cnpjForm">
-      <input type="text" id="cnpjInput" placeholder="Digite o CNPJ (apenas números)" maxlength="14" required pattern="\d{14}" title="CNPJ deve ter 14 dígitos numéricos" />
+      <textarea id="cnpjInput" rows="4" placeholder="Cole até 1000 CNPJs separados por vírgula, espaço ou quebra de linha" required></textarea>
       <button type="submit" class="add-btn">Adicionar</button>
     </form>
 
@@ -40,11 +40,9 @@
     <button id="printBtn" class="print-btn" style="display:none;">Imprimir Resultados (PDF)</button>
   </div>
 
-  <!-- jsPDF CDN para gerar PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
-    // Verifica se está logado, caso contrário redireciona para login
     if(localStorage.getItem('loggedIn') !== 'true') {
       window.location.href = 'index.html';
     }
@@ -61,33 +59,39 @@
 
     let cnpjList = [];
 
-    // Função para formatar CNPJ (ex: 00.000.000/0001-00)
     function formatCNPJ(cnpj) {
       return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
     }
 
-    // Adiciona CNPJ à lista
     cnpjForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      let cnpj = cnpjInput.value.trim();
+      let rawInput = cnpjInput.value.trim();
+      let novosCnpjs = rawInput
+        .split(/[\s,;\n]+/)
+        .map(c => c.replace(/\D/g, ''))
+        .filter(c => /^\d{14}$/.test(c));
 
-      if(!/^\d{14}$/.test(cnpj)) {
-        alert('Digite um CNPJ válido com 14 dígitos numéricos.');
+      if (novosCnpjs.length === 0) {
+        alert('Nenhum CNPJ válido encontrado.');
         return;
       }
 
-      if(cnpjList.includes(cnpj)) {
-        alert('CNPJ já adicionado.');
-        cnpjInput.value = '';
-        return;
+      let adicionados = 0;
+      novosCnpjs.forEach(cnpj => {
+        if (!cnpjList.includes(cnpj) && cnpjList.length < 1000) {
+          cnpjList.push(cnpj);
+          adicionados++;
+        }
+      });
+
+      if (adicionados === 0) {
+        alert('Nenhum novo CNPJ foi adicionado.');
       }
 
-      cnpjList.push(cnpj);
       renderCNPJList();
       cnpjInput.value = '';
     });
 
-    // Renderiza lista de CNPJs adicionados
     function renderCNPJList() {
       cnpjListEl.innerHTML = '';
       if(cnpjList.length === 0) {
@@ -112,7 +116,6 @@
       });
     }
 
-    // Limpa resultados e esconde seção
     function clearResults() {
       cnpjWithPixDiv.innerHTML = '';
       cnpjWithoutPixDiv.innerHTML = '';
@@ -120,14 +123,11 @@
       printBtn.style.display = 'none';
     }
 
-    // Simula busca por PIX cadastrado
-    // Para efeito de demo, vamos assumir que CNPJs terminados em número par têm PIX
     function buscarPix(cnpjs) {
       const comPix = [];
       const semPix = [];
 
       cnpjs.forEach(cnpj => {
-        // Exemplo: verifica último dígito do CNPJ
         const ultimoDigito = Number(cnpj.slice(-1));
         if(ultimoDigito % 2 === 0) {
           comPix.push(cnpj);
@@ -139,7 +139,6 @@
       return { comPix, semPix };
     }
 
-    // Exibe resultados na tela
     function mostrarResultados(resultados) {
       cnpjWithPixDiv.innerHTML = resultados.comPix.length ? 
         resultados.comPix.map(c => `<div class="cnpj-item">${formatCNPJ(c)}</div>`).join('') : '<div class="empty-msg">Nenhum CNPJ com PIX encontrado.</div>';
@@ -151,7 +150,6 @@
       printBtn.style.display = 'inline-block';
     }
 
-    // Botão buscar
     searchBtn.addEventListener('click', () => {
       if(cnpjList.length === 0) {
         alert('Adicione pelo menos um CNPJ para buscar.');
@@ -162,7 +160,6 @@
       mostrarResultados(resultados);
     });
 
-    // Botão imprimir PDF com resultados
     printBtn.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -189,13 +186,11 @@
       doc.save('relatorio_cnpj_pix.pdf');
     });
 
-    // Logout
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('loggedIn');
       window.location.href = 'index.html';
     });
 
-    // Inicializa lista vazia na tela
     renderCNPJList();
   </script>
 
