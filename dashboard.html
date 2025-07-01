@@ -173,6 +173,10 @@
       cnpjWithPixDiv.querySelectorAll('.cnpj-item').forEach(item => {
         doc.text(item.textContent, 20, y);
         y += 8;
+        if (y > 280) {  // quebra de página
+          doc.addPage();
+          y = 20;
+        }
       });
 
       y += 10;
@@ -181,6 +185,10 @@
       cnpjWithoutPixDiv.querySelectorAll('.cnpj-item').forEach(item => {
         doc.text(item.textContent, 20, y);
         y += 8;
+        if (y > 280) {  // quebra de página
+          doc.addPage();
+          y = 20;
+        }
       });
 
       doc.save('relatorio_cnpj_pix.pdf');
