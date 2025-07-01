@@ -234,3 +234,21 @@ li {
   color: #ccc;
   padding: 8px;
 }
+
+textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 2px solid #00ffc3;
+  background: transparent;
+  color: #00ffc3;
+  resize: vertical;
+  min-height: 100px;
+  font-family: 'Orbitron', sans-serif;
+}
+
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 10px #00ffc3;
+}
